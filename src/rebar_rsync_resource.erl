@@ -39,12 +39,7 @@ lock_(AppDir, {rsync, Url}) ->
     Ref = get_ref(AppDir),
     {rsync, Url, {ref, Ref}}.
 
-get_ref(Dir) ->
-    Func = get({rsync_ref_function, ?MODULE}),
-    case Func of
-        md5sum -> get_md5sum(Dir);
-        uuid   -> get_uuid()
-    end.
+get_ref(Dir) -> get_md5sum(Dir).
 
 get_md5sum(Dir) ->
     AbortMsg = lists:flatten(io_lib:format("Locking of rsync dependency failed in ~ts", [Dir])),
@@ -57,7 +52,6 @@ get_md5sum(Dir) ->
                     _ -> get_uuid()
                 end,
     Ref = string:trim(VsnString, both, "\n -"),
-    Ref = get_uuid(),
     Ref.
 
 get_uuid() ->
