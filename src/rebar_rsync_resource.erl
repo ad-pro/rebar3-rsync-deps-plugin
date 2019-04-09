@@ -7,6 +7,8 @@
          needs_update/2,
          make_vsn/2]).
 
+-export([get_ref/1]).
+
 -define(FAIL, rebar_utils:abort()).
 -define(ABORT(Str, Args), rebar_utils:abort(Str, Args)).
 
@@ -40,11 +42,9 @@ lock_(AppDir, {rsync, Url}) ->
 get_ref(Dir) ->
     AbortMsg = lists:flatten(io_lib:format("Locking of rsync dependency failed in ~ts", [Dir])),
     Dir2 = rebar_utils:escape_double_quotes(Dir),
-    {ok, VsnString} =
-                rebar_utils:sh("find \"" ++ Dir2 ++ "\" -type f  -exec md5sum  {} \; | sort | md5sum",
-                                                [{use_stdout, false}, {debug_abort_on_error, AbortMsg}]),
-
-    Ref = rebar_string:trim(VsnString, both, "\n -"),
+    Cmd = "find " ++ Dir2 ++ " -type f -exec md5sum {} + | sort| md5sum",
+    {ok, VsnString} =rebar_utils:sh(Cmd, [{use_stdout, false}, {debug_abort_on_error, AbortMsg}]),
+    Ref = string:trim(VsnString, both, "\n -"),
     Ref.
 
 
