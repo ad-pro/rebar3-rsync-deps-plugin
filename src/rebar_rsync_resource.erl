@@ -40,13 +40,32 @@ lock_(AppDir, {rsync, Url}) ->
     {rsync, Url, {ref, Ref}}.
 
 get_ref(Dir) ->
+    Func = get({rsync_ref_function, ?MODULE}),
+    case Func of
+        md5sum -> get_md5sum(Dir);
+        uuid   -> get_uuid()
+    end.
+
+get_md5sum(Dir) ->
     AbortMsg = lists:flatten(io_lib:format("Locking of rsync dependency failed in ~ts", [Dir])),
     Dir2 = rebar_utils:escape_double_quotes(Dir),
     Cmd = "find " ++ Dir2 ++ " -type f -exec md5sum {} + | sort| md5sum",
-    {ok, VsnString} =rebar_utils:sh(Cmd, [{use_stdout, false}, {debug_abort_on_error, AbortMsg}]),
+
+    Res =rebar_utils:sh(Cmd, [{use_stdout, false}, {debug_abort_on_error, AbortMsg}]),
+    VsnString = case Res of
+                    {ok, VsnString0} -> VsnString0;
+                    _ -> get_uuid()
+                end,
     Ref = string:trim(VsnString, both, "\n -"),
+    Ref = get_uuid(),
     Ref.
 
+get_uuid() ->
+    % from https://github.com/afiskon/erlang-uuid-v4/blob/master/src/uuid.erl
+    <<A:32, B:16, C:16, D:16, E:48>> = crypto:strong_rand_bytes(16),
+    Str = io_lib:format("~8.16.0b-~4.16.0b-4~3.16.0b-~4.16.0b-~12.16.0b", 
+                        [A, B, C band 16#0fff, D band 16#3fff bor 16#8000, E]),
+    list_to_binary(Str).
 
 needs_update(AppInfo, _) ->
     check_type_support(),
@@ -93,12 +112,27 @@ check_type_support() ->
         true ->
             ok;
         _ ->
-            case rebar_utils:sh("rsync --version", [{return_on_error, true},
-                                                  {use_stdout, false}]) of
-                {error, _} ->
-                    ?ABORT("rsync not installed", []);
-                _ ->
+           RsyncRes = rebar_utils:sh("rsync   --version", [{return_on_error, true},{use_stdout, false}]),
+           FindRes  = rebar_utils:sh("find    --version", [{return_on_error, true},{use_stdout, false}]),
+           Md5Sum   = rebar_utils:sh("md5sum  --version", [{return_on_error, true},{use_stdout, false}]),
+           Sort     = rebar_utils:sh("sort    --version", [{return_on_error, true},{use_stdout, false}]),
+           FindRes = rebar_utils:sh("find     --version", [{return_on_error, true},{use_stdout, false}]),
+           L  = [RsyncRes, FindRes, Md5Sum,Sort,FindRes],
+           F = fun(X) -> 
+                   case X of 
+                       {error,_} -> true;
+                       _ -> false
+                   end
+           end,
+           ErrFlag = lists:any(F,L),
+           case ErrFlag of 
+               true -> 
                     put({is_supported, ?MODULE}, true),
+                    put({rsync_ref_function,?MODULE},uuid),
+                    ok;
+               false -> 
+                    put({is_supported, ?MODULE}, true),
+                    put({rsync_ref_function,?MODULE},md5sum),
                     ok
             end
     end.

@@ -9,12 +9,13 @@ unfortunately  rebar3 only allows to use on-line repositories (git, hg, hex3 at 
 
 This plugin us rsync to control dependencies.
 
-To optimize work it tryes to calculate md5 sum of the folder content.
+To optimize work it try to calculate md5 sum of the folder content.
 Following bash command is used:
 
 ```
   `find <Dir> -type f -exec md5sum {} + | sort | md5sum`
 ```
+If this failed,  the UUID is used to generate reference (this could be helpful under Win platform).
 
 Plugin inspired by: https://github.com/kellymclaughlin/rebar3-tidy-deps-plugin
 
