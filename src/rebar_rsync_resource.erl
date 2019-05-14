@@ -93,7 +93,12 @@ download(TmpDir, AppInfo, State, _) ->
 download_(Dir, {rsync, Url, _Tag}, _State) ->
     ok = filelib:ensure_dir(Dir),
     ?INFO("filelib:ensure_dir is ok",[]),
-    rebar_utils:sh(?FMT("rsync -az --delete ~s/ ~s", [Url, Dir]), []).
+    ?INFO("Url: ~p Dir: ~p",[Url,Dir]),
+    Cmd = ?FMT("rsync -az --delete ~s/ ~s", [Url, Dir]),
+    ?INFO("Cmd: ~p",[Cmd]),
+    Res =rebar_utils:sh(Cmd, []),
+    ?INFO("Res: ~p",[Res]),
+    Res.
 
 
 make_vsn(_Dir, _ResourceState) ->
@@ -117,6 +122,7 @@ check_type_support() ->
            Sort     = rebar_utils:sh("sort    --version", [{return_on_error, true},{use_stdout, false}]),
            FindRes = rebar_utils:sh("find     --version", [{return_on_error, true},{use_stdout, false}]),
            L  = [RsyncRes, FindRes, Md5Sum,Sort,FindRes],
+           ?INFO("L: ~p",[L]),
            F = fun(X) -> 
                    case X of 
                        {error,_} -> true;
