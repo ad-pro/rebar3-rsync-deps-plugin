@@ -25,6 +25,7 @@
 
 %% Initialize the custom dep resource plugin
 init(Type, _RebarState) ->
+    ?INFO("Type: ~p",[Type]),
     Resource = rebar_resource_v2:new(Type, ?MODULE, #{}),
     {ok, Resource}.
 
@@ -71,6 +72,7 @@ needs_update_(_Dir, {rsync, _Url, "master"}) -> true;
 needs_update_(Dir, {rsync, _Url, {_What, Tag}}) ->
     Current = get_ref(Dir),
     ?DEBUG("Comparing git tag ~ts with ~ts", [Tag, Current]),
+    ?INFO("Comparing git tag ~ts with ~ts", [Tag, Current]),
     not (Current =:= Tag).
 
 
@@ -80,14 +82,17 @@ download(TmpDir, AppInfo, State, _) ->
         {ok, _} ->
             ok;
         {error, Reason} ->
+            ?ERROR("Download error. Reason: ~p",[Reason]),
             {error, Reason};
         Error ->
+            ?ERROR("Download error.: ~p",[Error]),
             {error, Error}
     end.
 
 
 download_(Dir, {rsync, Url, _Tag}, _State) ->
     ok = filelib:ensure_dir(Dir),
+    ?INFO("filelib:ensure_dir is ok",[]),
     rebar_utils:sh(?FMT("rsync -az --delete ~s/ ~s", [Url, Dir]), []).
 
 
@@ -121,6 +126,7 @@ check_type_support() ->
            ErrFlag = lists:any(F,L),
            case ErrFlag of 
                true -> 
+                   ?ERROR("Check Support Error: ~p",[ErrFlag]),
                     put({is_supported, ?MODULE}, true),
                     put({rsync_ref_function,?MODULE},uuid),
                     ok;
