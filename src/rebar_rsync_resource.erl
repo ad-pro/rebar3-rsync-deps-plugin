@@ -25,7 +25,7 @@
 
 %% Initialize the custom dep resource plugin
 init(Type, _RebarState) ->
-    ?INFO("Type: ~p",[Type]),
+    %?INFO("Type: ~p",[Type]),
     Resource = rebar_resource_v2:new(Type, ?MODULE, #{}),
     {ok, Resource}.
 
@@ -71,7 +71,7 @@ needs_update_(_Dir, {rsync, _Url, "master"}) -> true;
 % we do not separate What: tag, branch,
 needs_update_(Dir, {rsync, _Url, {_What, Tag}}) ->
     Current = get_ref(Dir),
-    ?DEBUG("Comparing git tag ~ts with ~ts", [Tag, Current]),
+    %?DEBUG("Comparing git tag ~ts with ~ts", [Tag, Current]),
     ?INFO("Comparing git tag ~ts with ~ts", [Tag, Current]),
     not (Current =:= Tag).
 
@@ -80,9 +80,9 @@ correct_tmp_dir(TmpDir) ->
          {win32, _} ->
              % We run under cygwin. So just convert path using cygpath cmd.
              Cmd = ?FMT("cygpath -u ~s",[TmpDir]),
-             ?INFO("Convert Path Cmd:  ~p",[Cmd]),
+             %?INFO("Convert Path Cmd:  ~p",[Cmd]),
              Res = rebar_utils:sh(Cmd,[]),
-             ?INFO("Convert path Res: ~p",[Res]),
+             %?INFO("Convert path Res: ~p",[Res]),
              {ok,TmpDir2} = Res,
              rebar_string:trim(TmpDir2, both, "\n");
          _ -> TmpDir
@@ -96,7 +96,7 @@ download(TmpDir, AppInfo, State, _) ->
     % cygwin rsync complains if path start with c:/...
     % Just remove ":" to make Cygwin happy.
     TmpDir2 = correct_tmp_dir(TmpDir),
-    ?INFO("TmpDir2: ~p ",[TmpDir2]),
+    %?INFO("TmpDir2: ~p ",[TmpDir2]),
     case download_(TmpDir2, rebar_app_info:source(AppInfo), State) of
         {ok, _} ->
             ok;
@@ -111,12 +111,12 @@ download(TmpDir, AppInfo, State, _) ->
 
 download_(Dir, {rsync, Url, _Tag}, _State) ->
     ok = filelib:ensure_dir(Dir),
-    ?INFO("filelib:ensure_dir is ok",[]),
-    ?INFO("Url: ~p Dir: ~p",[Url,Dir]),
+    %?INFO("filelib:ensure_dir is ok",[]),
+    %?INFO("Url: ~p Dir: ~p",[Url,Dir]),
     Cmd = ?FMT("rsync -az --delete ~s/ ~s", [Url, Dir]),
-    ?INFO("Cmd: ~p",[Cmd]),
+    %?INFO("Cmd: ~p",[Cmd]),
     Res =rebar_utils:sh(Cmd, []),
-    ?INFO("Res: ~p",[Res]),
+    %?INFO("Res: ~p",[Res]),
     Res.
 
 
@@ -141,7 +141,7 @@ check_type_support() ->
            Sort     = rebar_utils:sh("sort    --version", [{return_on_error, true},{use_stdout, false}]),
            FindRes = rebar_utils:sh("find     --version", [{return_on_error, true},{use_stdout, false}]),
            L  = [RsyncRes, FindRes, Md5Sum,Sort,FindRes],
-           ?INFO("L: ~p",[L]),
+           %?INFO("L: ~p",[L]),
            F = fun(X) -> 
                    case X of 
                        {error,_} -> true;
