@@ -80,7 +80,10 @@ correct_tmp_dir(TmpDir) ->
          {win32, _} ->
              % We run under cygwin. So just convert path using cygpath cmd.
              Cmd = ?FMT("cygpath -u ~s",[TmpDir]),
-             rebar_utils:sh(Cmd);
+             ?INFO("Convert Path Cmd:  ~p",[Cmd]),
+             Res = rebar_utils:sh(Cmd),
+             ?INFO("Convert path Res: ~p",[Res]),
+             Res;
          _ -> TmpDir
      end.
 
