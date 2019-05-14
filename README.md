@@ -19,6 +19,15 @@ If this failed,  the UUID is used to generate reference (this could be helpful u
 
 Plugin inspired by: https://github.com/kellymclaughlin/rebar3-tidy-deps-plugin
 
+## Suported OS
+ 
+ Plugin initialy tested on Linux.
+
+ To run it under windows Cygwin is required.
+
+ NOTE: check that your cygwin path is in front of Windows.
+ Plugin use cygwin find command and would not work with windows find.
+
 ## Configuration
 
 Configure the plugin and and set it as a pre hook for the
