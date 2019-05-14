@@ -75,10 +75,24 @@ needs_update_(Dir, {rsync, _Url, {_What, Tag}}) ->
     ?INFO("Comparing git tag ~ts with ~ts", [Tag, Current]),
     not (Current =:= Tag).
 
+correct_tmp_dir(TmpDir) ->
+     case os:type() of
+         {win32, _} ->
+             % We run under cygwin. So just convert path using cygpath cmd.
+             Cmd = ?FMT("cygpath -u ~s",[TmpDir]),
+             rebar_utils:sh(Cmd);
+         _ -> TmpDir
+     end.
+
+
 
 download(TmpDir, AppInfo, State, _) ->
     check_type_support(),
-    case download_(TmpDir, rebar_app_info:source(AppInfo), State) of
+    % correct TmpDir under windows.
+    % cygwin rsync complains if path start with c:/...
+    % Just remove ":" to make Cygwin happy.
+    TmpDir2 = correct_tmp_dir(TmpDir),
+    case download_(TmpDir2, rebar_app_info:source(AppInfo), State) of
         {ok, _} ->
             ok;
         {error, Reason} ->
