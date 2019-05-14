@@ -83,7 +83,8 @@ correct_tmp_dir(TmpDir) ->
              ?INFO("Convert Path Cmd:  ~p",[Cmd]),
              Res = rebar_utils:sh(Cmd,[]),
              ?INFO("Convert path Res: ~p",[Res]),
-             Res;
+             {ok,TmpDir2} = Res,
+             rebar_string:trim(TmpDir2, both, "\n");
          _ -> TmpDir
      end.
 
