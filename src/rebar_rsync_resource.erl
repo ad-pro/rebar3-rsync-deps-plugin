@@ -81,7 +81,7 @@ correct_tmp_dir(TmpDir) ->
              % We run under cygwin. So just convert path using cygpath cmd.
              Cmd = ?FMT("cygpath -u ~s",[TmpDir]),
              ?INFO("Convert Path Cmd:  ~p",[Cmd]),
-             Res = rebar_utils:sh(Cmd),
+             Res = rebar_utils:sh(Cmd,[]),
              ?INFO("Convert path Res: ~p",[Res]),
              Res;
          _ -> TmpDir
@@ -95,6 +95,7 @@ download(TmpDir, AppInfo, State, _) ->
     % cygwin rsync complains if path start with c:/...
     % Just remove ":" to make Cygwin happy.
     TmpDir2 = correct_tmp_dir(TmpDir),
+    ?INFO("TmpDir2: ~p ",[TmpDir2]),
     case download_(TmpDir2, rebar_app_info:source(AppInfo), State) of
         {ok, _} ->
             ok;
